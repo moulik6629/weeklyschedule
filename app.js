@@ -1,7 +1,7 @@
 /**
  * ============================================================================
- * Weekly Schedule — app.js
- * High-performance, pixel-perfect weekly timetable engine.
+ * AIIMS Bhubaneswar MBBS Exam Schedule — app.js
+ * Batches: 2022, 2023, 2024
  * ============================================================================
  */
 
@@ -13,37 +13,37 @@ const GRID_END    = 18;  // 06:00 PM
 const SLOT_HEIGHT = 60;  // Pixels per hour
 
 const PALETTE = [
-  { bg: 'var(--c0)', accent: 'var(--ca0)' }, // Peach
-  { bg: 'var(--c1)', accent: 'var(--ca1)' }, // Sage
-  { bg: 'var(--c2)', accent: 'var(--ca2)' }, // Periwinkle
-  { bg: 'var(--c3)', accent: 'var(--ca3)' }, // Wheat
+  { bg: 'var(--c0)', accent: 'var(--ca0)' }, // Peach / Amber (Batch 2022)
+  { bg: 'var(--c1)', accent: 'var(--ca1)' }, // Sage / Emerald (Batch 2023)
+  { bg: 'var(--c2)', accent: 'var(--ca2)' }, // Periwinkle / Navy (Batch 2024)
   { bg: 'var(--c4)', accent: 'var(--ca4)' }, // Lavender
   { bg: 'var(--c5)', accent: 'var(--ca5)' }, // Sky
-  { bg: 'var(--c6)', accent: 'var(--ca6)' }, // Blush
-  { bg: 'var(--c7)', accent: 'var(--ca7)' }, // Butter
-  { bg: 'var(--c8)', accent: 'var(--ca8)' }, // Mint
-  { bg: 'var(--c9)', accent: 'var(--ca9)' }, // Slate
+  { bg: 'var(--c6)', accent: 'var(--ca6)' }, // Rose
 ];
 
-const STORAGE_KEY = 'weekly_schedule_custom_events_v1';
+const BATCH_COLORS = {
+  'Batch 2022': { bg: 'var(--c0)', accent: 'var(--ca0)' },
+  'Batch 2023': { bg: 'var(--c1)', accent: 'var(--ca1)' },
+  'Batch 2024': { bg: 'var(--c2)', accent: 'var(--ca2)' },
+};
+
+const STORAGE_KEY = 'aiims_mbbs_exams_schedule_v2';
 
 /* ---------- APPLICATION STATE ---------- */
 let allEvents       = [];
 let subjectMap      = {};
 let weekOffset      = 0;     // 0 = current week, +1 = next week, -1 = last week
-let activeGroup     = 'all';
+let activeGroup     = 'all'; // 'all', '2022', '2023', '2024'
 let activeEvent     = null;  // For detail modal & deletion
 
 /* ---------- UTILITY FUNCTIONS ---------- */
 
-/** Convert HH:MM string to total minutes from midnight */
 function toMinutes(timeStr) {
   if (!timeStr) return 0;
   const [h, m] = timeStr.split(':').map(Number);
   return h * 60 + m;
 }
 
-/** Convert HH:MM to friendly 12-hour format e.g. "8:30 AM" */
 function formatTime(timeStr) {
   if (!timeStr) return '';
   const [h, m] = timeStr.split(':').map(Number);
@@ -52,21 +52,18 @@ function formatTime(timeStr) {
   return `${hour}:${m.toString().padStart(2, '0')} ${suffix}`;
 }
 
-/** Parse YYYY-MM-DD into a local Date object without timezone shift */
 function parseDate(dateStr) {
   if (!dateStr) return new Date();
   const [year, month, day] = dateStr.split('-').map(Number);
   return new Date(year, month - 1, day);
 }
 
-/** Add n days to a date */
 function addDays(date, n) {
   const d = new Date(date);
   d.setDate(d.getDate() + n);
   return d;
 }
 
-/** Format Date to YYYY-MM-DD */
 function toDateKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -74,12 +71,10 @@ function toDateKey(date) {
   return `${y}-${m}-${d}`;
 }
 
-/** Format Date to "14 Sep" */
 function formatShortDate(date) {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
-/** Get Monday of the week offset from today */
 function getWeekStart(offset = 0) {
   const now = new Date();
   const dow = (now.getDay() + 6) % 7; // Monday = 0, Sunday = 6
@@ -89,8 +84,8 @@ function getWeekStart(offset = 0) {
   return monday;
 }
 
-/** Assign a consistent, stable palette color per subject */
 function getColor(subject) {
+  if (subject in BATCH_COLORS) return BATCH_COLORS[subject];
   if (!subject) return PALETTE[0];
   const normalized = subject.trim();
   if (!(normalized in subjectMap)) {
@@ -101,25 +96,24 @@ function getColor(subject) {
 
 /* ---------- RENDER FUNCTIONS ---------- */
 
-/** Build the top subject pill legend */
 function buildLegend() {
   const legend = document.getElementById('legend');
   if (!legend) return;
   legend.innerHTML = '';
 
-  Object.entries(subjectMap).forEach(([subject, idx]) => {
-    const color = PALETTE[idx];
+  const batches = ['Batch 2022', 'Batch 2023', 'Batch 2024'];
+  batches.forEach(b => {
+    const color = getColor(b);
     const item = document.createElement('div');
     item.className = 'legend-item';
     item.innerHTML = `
       <span class="legend-dot" style="background: ${color.accent}"></span>
-      <span>${subject}</span>
+      <span>${b}</span>
     `;
     legend.appendChild(item);
   });
 }
 
-/** Build the full timetable grid */
 function buildGrid() {
   const grid      = document.getElementById('schedule-grid');
   const weekStart = getWeekStart(weekOffset);
@@ -132,7 +126,7 @@ function buildGrid() {
   if (weekLabelEl) {
     const yearStr = weekStart.getFullYear() === weekEnd.getFullYear()
       ? weekStart.getFullYear()
-      : `${weekStart.getFullYear()}/${weekEnd.getFullYear()}`;
+      : `${weekStart.getFullYear()} / ${weekEnd.getFullYear()}`;
     weekLabelEl.textContent = `${formatShortDate(weekStart)} – ${formatShortDate(weekEnd)}, ${yearStr}`;
   }
 
@@ -163,14 +157,12 @@ function buildGrid() {
 
   // 3. TIME SLOT ROWS & DAY CELLS
   for (let h = GRID_START; h < GRID_END; h++) {
-    // Time label cell (Column 1)
     const timeCell = document.createElement('div');
     timeCell.className = 'time-label';
     timeCell.style.height = `${SLOT_HEIGHT}px`;
     timeCell.textContent = `${String(h).padStart(2, '0')}:00`;
     grid.appendChild(timeCell);
 
-    // 7 Day Cells for this hour
     DAYS.forEach((day, i) => {
       const dayDate = weekDayDates[i];
       const isToday = dayDate.getTime() === today.getTime();
@@ -185,25 +177,24 @@ function buildGrid() {
     });
   }
 
-  // 4. FILTER VISIBLE EVENTS FOR THIS WEEK & ACTIVE GROUP
+  // 4. FILTER VISIBLE EXAMS FOR THIS WEEK & ACTIVE BATCH
   const wsTime = weekStart.getTime();
-  const weTime = addDays(weekStart, 7).getTime(); // Exclusive end of Sunday
+  const weTime = addDays(weekStart, 7).getTime();
 
   const visibleEvents = allEvents.filter(evt => {
-    // Group filter match
-    const evtGroup = (evt.group || 'all').toLowerCase();
+    // Match batch filter
+    const evtBatch = (evt.batch || evt.group || '').toLowerCase();
     const curGroup = activeGroup.toLowerCase();
-    const groupMatch = (curGroup === 'all') || (evtGroup === 'all') || (evtGroup === curGroup);
-    if (!groupMatch) return false;
+    const batchMatch = (curGroup === 'all') || (evtBatch === curGroup) || (evtBatch.includes(curGroup));
+    if (!batchMatch) return false;
 
-    // Date range match
+    // Match this week's date range
     if (evt.date) {
       const evtTime = parseDate(evt.date).getTime();
       const inThisWeek = (evtTime >= wsTime && evtTime < weTime);
       if (inThisWeek) return true;
     }
 
-    // Recurring weekly match
     if (evt.recurring === true || evt.recurring === 'yes') {
       return true;
     }
@@ -211,20 +202,12 @@ function buildGrid() {
     return false;
   });
 
-  // 5. PLACE EVENTS ONTO THE GRID
+  // 5. PLACE EXAMS ONTO THE GRID
   let hasAnyEvent = false;
 
   visibleEvents.forEach(evt => {
     let dayName = evt.day;
-    let eventDateKey = evt.date;
-
-    // If recurring, calculate the target date for this week
-    if ((evt.recurring === true || evt.recurring === 'yes') && evt.day) {
-      const dayIdx = DAYS.indexOf(evt.day);
-      if (dayIdx !== -1) {
-        eventDateKey = toDateKey(weekDayDates[dayIdx]);
-      }
-    } else if (evt.date && !dayName) {
+    if (evt.date && !dayName) {
       const d = parseDate(evt.date);
       const dayIdx = (d.getDay() + 6) % 7;
       dayName = DAYS[dayIdx];
@@ -235,26 +218,22 @@ function buildGrid() {
     const startMin = toMinutes(evt.start_time);
     const endMin   = toMinutes(evt.end_time);
 
-    // Boundary check
     if (startMin < GRID_START * 60 || endMin > (GRID_END + 1) * 60 || endMin <= startMin) return;
 
     hasAnyEvent = true;
     const color = getColor(evt.subject);
 
-    // Calculate anchor cell and pixel offsets
     const startHour = Math.floor(startMin / 60);
     const minuteWithinHour = startMin % 60;
     const durationMinutes = endMin - startMin;
 
     const topPx = (minuteWithinHour / 60) * SLOT_HEIGHT + 2;
-    const heightPx = Math.max((durationMinutes / 60) * SLOT_HEIGHT - 4, 30);
+    const heightPx = Math.max((durationMinutes / 60) * SLOT_HEIGHT - 4, 34);
 
-    // Find target day cell
     const cellSelector = `[data-day="${dayName}"][data-hour="${startHour}"]`;
     const anchorCell = grid.querySelector(cellSelector);
     if (!anchorCell) return;
 
-    // Create Event Block
     const block = document.createElement('div');
     block.className = 'event-block';
     block.style.cssText = `
@@ -265,10 +244,10 @@ function buildGrid() {
     `;
 
     block.innerHTML = `
-      <div class="event-subject">${evt.subject || 'Class'}</div>
+      <div class="event-subject">${evt.subject || 'Exam'}</div>
       <div class="event-topic">${evt.topic || ''}</div>
-      ${heightPx >= 52 && evt.faculty ? `<div class="event-faculty">${evt.faculty}</div>` : ''}
-      ${heightPx >= 70 ? `<div class="event-time-label">${formatTime(evt.start_time)} – ${formatTime(evt.end_time)}</div>` : ''}
+      ${heightPx >= 54 ? `<div class="event-faculty">${evt.room || 'Exam Hall'}</div>` : ''}
+      ${heightPx >= 72 ? `<div class="event-time-label">${formatTime(evt.start_time)} – ${formatTime(evt.end_time)}</div>` : ''}
     `;
 
     block.addEventListener('click', (e) => {
@@ -293,39 +272,35 @@ function buildGrid() {
 
 /* ---------- MODAL LOGIC ---------- */
 
-/** Open event detail modal */
 function openDetailModal(evt, color, dayName) {
   activeEvent = evt;
 
   document.getElementById('modal-color-bar').style.background = color.accent;
-  document.getElementById('modal-tag').textContent = evt.subject || 'Class';
+  document.getElementById('modal-tag').textContent = evt.subject || 'Exam';
   
   const groupBadge = document.getElementById('modal-group-badge');
-  groupBadge.textContent = evt.group ? `Group ${evt.group.toUpperCase()}` : 'All Groups';
+  groupBadge.textContent = evt.batch ? `Batch ${evt.batch}` : 'MBBS Exam';
 
   document.getElementById('modal-title').textContent = evt.topic || evt.subject;
-  document.getElementById('modal-faculty').textContent = evt.faculty || 'Not specified';
+  document.getElementById('modal-faculty').textContent = evt.notes || 'AIIMS Bhubaneswar Examination';
   document.getElementById('modal-time').textContent = `${formatTime(evt.start_time)} – ${formatTime(evt.end_time)}`;
   
-  // Format Date & Day display
   const dateObj = evt.date ? parseDate(evt.date) : new Date();
   const dateFormatted = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   document.getElementById('modal-day').textContent = `${dayName || evt.day || ''} • ${dateFormatted}`;
 
-  document.getElementById('modal-room').textContent = evt.room || 'Room TBA';
+  document.getElementById('modal-room').textContent = evt.room || 'Examination Hall / LT';
 
   document.getElementById('modal-backdrop').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
 
-/** Close detail modal */
 function closeDetailModal() {
   document.getElementById('modal-backdrop').classList.add('hidden');
   document.body.style.overflow = '';
   activeEvent = null;
 }
 
-/** Delete current event */
 function deleteActiveEvent() {
   if (!activeEvent) return;
   if (!confirm(`Are you sure you want to delete "${activeEvent.subject} - ${activeEvent.topic}"?`)) return;
@@ -337,12 +312,10 @@ function deleteActiveEvent() {
   buildGrid();
 }
 
-/** Open Add Class modal */
 function openAddModal() {
   const form = document.getElementById('add-event-form');
   form.reset();
 
-  // Set default date to currently viewed week start or today
   const weekStart = getWeekStart(weekOffset);
   document.getElementById('form-date').value = toDateKey(weekStart);
 
@@ -350,13 +323,11 @@ function openAddModal() {
   document.body.style.overflow = 'hidden';
 }
 
-/** Close Add Class modal */
 function closeAddModal() {
   document.getElementById('add-modal-backdrop').classList.add('hidden');
   document.body.style.overflow = '';
 }
 
-/** Handle Add Class form submit */
 function handleAddEventSubmit(e) {
   e.preventDefault();
 
@@ -380,11 +351,12 @@ function handleAddEventSubmit(e) {
   const dayName = DAYS[dayIdx];
 
   const newEvent = {
-    id: `evt-${Date.now()}`,
+    id: `exam-${Date.now()}`,
+    batch: group,
     subject,
     topic,
-    faculty: faculty || 'Instructor TBA',
-    room: room || 'Lecture Hall',
+    faculty: faculty || 'Exam Cell',
+    room: room || 'Examination Hall / LT',
     date: dateStr,
     day: dayName,
     start_time: startTime,
@@ -396,7 +368,6 @@ function handleAddEventSubmit(e) {
   allEvents.push(newEvent);
   saveToStorage();
 
-  // Ensure color mapped
   getColor(subject);
   buildLegend();
   buildGrid();
@@ -427,12 +398,10 @@ function loadFromStorage() {
 
 /* ---------- DATA INITIALIZATION ---------- */
 async function initializeSchedule() {
-  // 1. Try local storage first
   const storedEvents = loadFromStorage();
   if (storedEvents && storedEvents.length > 0) {
     allEvents = storedEvents;
   } else {
-    // 2. Fetch from schedule.json
     try {
       const res = await fetch('./schedule.json');
       if (res.ok) {
@@ -441,14 +410,9 @@ async function initializeSchedule() {
         saveToStorage();
       }
     } catch (err) {
-      console.warn('Failed to fetch schedule.json, initializing with default sample:', err);
+      console.warn('Failed to fetch schedule.json:', err);
     }
   }
-
-  // Pre-register subject colors
-  allEvents.forEach(e => {
-    if (e.subject) getColor(e.subject);
-  });
 
   buildLegend();
   buildGrid();
@@ -469,23 +433,23 @@ function generateICSContent(events) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Weekly Schedule Modern//EN',
+    'PRODID:-//AIIMS Bhubaneswar MBBS Exam Schedule//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:Weekly Schedule'
+    'X-WR-CALNAME:MBBS Exam Schedule'
   ];
 
   events.forEach((evt, idx) => {
     if (!evt.date || !evt.start_time || !evt.end_time) return;
     lines.push(
       'BEGIN:VEVENT',
-      `UID:schedule-${idx}-${evt.id || Date.now()}@weeklyschedule`,
+      `UID:aiims-exam-${idx}-${evt.id || Date.now()}@aiimsbbsr`,
       `DTSTAMP:${toICSDateTime(toDateKey(new Date()), '00:00')}Z`,
       `DTSTART:${toICSDateTime(evt.date, evt.start_time)}`,
       `DTEND:${toICSDateTime(evt.date, evt.end_time)}`,
-      `SUMMARY:${evt.subject}: ${evt.topic}`,
-      `DESCRIPTION:Faculty: ${evt.faculty || 'TBA'}\\nGroup: ${evt.group || 'All'}\\nRoom: ${evt.room || 'TBA'}`,
-      `LOCATION:${evt.room || 'Campus'}`,
+      `SUMMARY:${evt.subject} Exam: ${evt.topic}`,
+      `DESCRIPTION:Batch: ${evt.batch || evt.group || 'MBBS'}\\nLocation: ${evt.room || 'Exam Hall'}\\nDetails: ${evt.notes || ''}`,
+      `LOCATION:${evt.room || 'AIIMS Bhubaneswar'}`,
       `CATEGORIES:${evt.subject}`,
       'STATUS:CONFIRMED',
       'END:VEVENT'
@@ -498,7 +462,7 @@ function generateICSContent(events) {
 
 function downloadICS() {
   if (!allEvents.length) {
-    alert('No events to export!');
+    alert('No exams to export!');
     return;
   }
   const content = generateICSContent(allEvents);
@@ -506,7 +470,7 @@ function downloadICS() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'weekly-schedule.ics';
+  a.download = 'aiims-mbbs-exam-schedule.ics';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -515,10 +479,8 @@ function downloadICS() {
 
 /* ---------- EVENT LISTENERS ---------- */
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize
   initializeSchedule();
 
-  // Week Navigation
   document.getElementById('prev-week').addEventListener('click', () => {
     weekOffset--;
     buildGrid();
@@ -534,7 +496,6 @@ document.addEventListener('DOMContentLoaded', () => {
     buildGrid();
   });
 
-  // Group Filter Buttons
   document.querySelectorAll('.group-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
@@ -544,7 +505,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Detail Modal Events
   document.getElementById('modal-close').addEventListener('click', closeDetailModal);
   document.getElementById('modal-close-action').addEventListener('click', closeDetailModal);
   document.getElementById('modal-delete-btn').addEventListener('click', deleteActiveEvent);
@@ -552,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.id === 'modal-backdrop') closeDetailModal();
   });
 
-  // Add Class Modal Events
   document.getElementById('open-add-btn').addEventListener('click', openAddModal);
   document.getElementById('add-modal-close').addEventListener('click', closeAddModal);
   document.getElementById('add-modal-cancel').addEventListener('click', closeAddModal);
@@ -561,13 +520,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('add-event-form').addEventListener('submit', handleAddEventSubmit);
 
-  // Calendar Export Button
   document.getElementById('export-ics-btn').addEventListener('click', (e) => {
     e.preventDefault();
     downloadICS();
   });
 
-  // Keyboard Shortcuts (Escape to close modals)
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeDetailModal();
