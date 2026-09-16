@@ -1,0 +1,177 @@
+{
+  "settings": {
+    "gridStartHour": 8,
+    "gridEndHour": 18,
+    "slotHeight": 60
+  },
+  "events": [
+    {
+      "id": "evt-1",
+      "subject": "Ophthalmology",
+      "topic": "Anatomy and Embryology of Eye",
+      "faculty": "Dr. P. Mishra",
+      "day": "Monday",
+      "date": "2026-09-14",
+      "start_time": "08:00",
+      "end_time": "09:00",
+      "group": "all",
+      "room": "Lecture Hall 1"
+    },
+    {
+      "id": "evt-2",
+      "subject": "Pathology",
+      "topic": "General Neoplasia & Tumor Genetics",
+      "faculty": "Dr. R. Bannerjee",
+      "day": "Monday",
+      "date": "2026-09-14",
+      "start_time": "10:00",
+      "end_time": "12:00",
+      "group": "A",
+      "room": "LT-3"
+    },
+    {
+      "id": "evt-3",
+      "subject": "Microbiology",
+      "topic": "Systemic Bacteriology: Mycobacteria",
+      "faculty": "Dr. S. K. Sen",
+      "day": "Monday",
+      "date": "2026-09-14",
+      "start_time": "14:00",
+      "end_time": "16:00",
+      "group": "B",
+      "room": "Micro Lab"
+    },
+    {
+      "id": "evt-4",
+      "subject": "Pharmacology",
+      "topic": "Autonomic Nervous System & Beta Blockers",
+      "faculty": "Dr. S. K. Sahu",
+      "day": "Tuesday",
+      "date": "2026-09-15",
+      "start_time": "09:00",
+      "end_time": "10:30",
+      "group": "all",
+      "room": "Lecture Hall 2"
+    },
+    {
+      "id": "evt-5",
+      "subject": "Forensic Medicine",
+      "topic": "Medical Jurisprudence & Autopsy Findings",
+      "faculty": "Dr. K. Das",
+      "day": "Tuesday",
+      "date": "2026-09-15",
+      "start_time": "11:00",
+      "end_time": "12:30",
+      "group": "C",
+      "room": "FMT Demo Room"
+    },
+    {
+      "id": "evt-6",
+      "subject": "Ophthalmology",
+      "topic": "Corneal Ulcers and Bacterial Keratitis",
+      "faculty": "Dr. B. Panda",
+      "day": "Wednesday",
+      "date": "2026-09-16",
+      "start_time": "08:30",
+      "end_time": "10:00",
+      "group": "all",
+      "room": "Lecture Hall 1"
+    },
+    {
+      "id": "evt-7",
+      "subject": "Community Medicine",
+      "topic": "Epidemiology of Communicable Diseases",
+      "faculty": "Dr. A. Nayak",
+      "day": "Wednesday",
+      "date": "2026-09-16",
+      "start_time": "11:00",
+      "end_time": "13:00",
+      "group": "all",
+      "room": "Lecture Hall 1"
+    },
+    {
+      "id": "evt-8",
+      "subject": "Pathology",
+      "topic": "Hematology Practical: Peripheral Smear",
+      "faculty": "Dr. R. Bannerjee",
+      "day": "Wednesday",
+      "date": "2026-09-16",
+      "start_time": "14:30",
+      "end_time": "16:30",
+      "group": "A",
+      "room": "Hemat Lab"
+    },
+    {
+      "id": "evt-9",
+      "subject": "Pharmacology",
+      "topic": "Antimicrobial Chemotherapy: Penicillins",
+      "faculty": "Dr. S. K. Sahu",
+      "day": "Thursday",
+      "date": "2026-09-17",
+      "start_time": "09:00",
+      "end_time": "10:30",
+      "group": "all",
+      "room": "Lecture Hall 2"
+    },
+    {
+      "id": "evt-10",
+      "subject": "Ophthalmology",
+      "topic": "Visual Acuity, Glaucoma & Gonioscopy",
+      "faculty": "Dr. B. Moharana",
+      "day": "Thursday",
+      "date": "2026-09-17",
+      "start_time": "11:30",
+      "end_time": "13:00",
+      "group": "B",
+      "room": "Eye OPD"
+    },
+    {
+      "id": "evt-11",
+      "subject": "Microbiology",
+      "topic": "Virology: Hepatitis Viruses & HIV",
+      "faculty": "Dr. S. K. Sen",
+      "day": "Friday",
+      "date": "2026-09-18",
+      "start_time": "08:30",
+      "end_time": "10:00",
+      "group": "all",
+      "room": "Lecture Hall 1"
+    },
+    {
+      "id": "evt-12",
+      "subject": "Community Medicine",
+      "topic": "Field Visit: Primary Health Centre (PHC)",
+      "faculty": "Dr. A. Nayak",
+      "day": "Friday",
+      "date": "2026-09-18",
+      "start_time": "13:00",
+      "end_time": "17:00",
+      "group": "all",
+      "room": "Off-campus"
+    },
+    {
+      "id": "evt-13",
+      "subject": "Forensic Medicine",
+      "topic": "Toxicology: Organophosphorus Poisoning",
+      "faculty": "Dr. K. Das",
+      "day": "Saturday",
+      "date": "2026-09-19",
+      "start_time": "09:00",
+      "end_time": "11:00",
+      "group": "C",
+      "room": "FMT Hall"
+    },
+    {
+      "id": "evt-14",
+      "subject": "Pathology",
+      "topic": "Clinical Pathology Review & Case Studies",
+      "faculty": "Dr. R. Bannerjee",
+      "day": "Saturday",
+      "date": "2026-09-19",
+      "start_time": "11:30",
+      "end_time": "13:00",
+      "group": "D",
+      "room": "Seminar Hall"
+    }
+  ]
+}
